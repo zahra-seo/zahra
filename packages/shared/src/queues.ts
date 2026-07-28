@@ -31,3 +31,8 @@ export interface EvaluateJobData {
   projectId: string;
   actionId: string;
 }
+
+export interface SyncJobData {
+  projectId: string;
+  kind: 'gsc' | 'ga4';
+}

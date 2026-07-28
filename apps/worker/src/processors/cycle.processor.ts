@@ -1,10 +1,10 @@
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger } from '@nestjs/common';
 import { Job, Queue } from 'bullmq';
-import { cycles, eq, projects, type Db } from '@zahra-seo/db';
+import { and, cycles, eq, integrations, projects, type Db } from '@zahra-seo/db';
 import { projectBudgetsSchema } from '@zahra-seo/shared';
 import { DB } from '../db.module';
-import { QUEUES, type CrawlJobData, type CycleJobData } from '../queues';
+import { QUEUES, type CrawlJobData, type CycleJobData, type SyncJobData } from '../queues';
 
 /**
  * One turn of the agent loop for one project — see docs/architecture.fr.md §5.
@@ -18,6 +18,7 @@ export class CycleProcessor extends WorkerHost {
   constructor(
     @Inject(DB) private readonly db: Db,
     @InjectQueue(QUEUES.crawl) private readonly crawlQueue: Queue<CrawlJobData>,
+    @InjectQueue(QUEUES.sync) private readonly syncQueue: Queue<SyncJobData>,
   ) {
     super();
   }
@@ -42,6 +43,15 @@ export class CycleProcessor extends WorkerHost {
       { projectId, cycleId: cycle.id, maxPages: budgets.maxCrawlPagesPerCycle },
       { jobId: `crawl:${cycle.id}` },
     );
+
+    // External data syncs run alongside the crawl (idempotent, cheap when up to date)
+    const [gsc] = await this.db
+      .select({ id: integrations.id })
+      .from(integrations)
+      .where(and(eq(integrations.projectId, projectId), eq(integrations.kind, 'gsc')));
+    if (gsc) {
+      await this.syncQueue.add('sync', { projectId, kind: 'gsc' }, { jobId: `sync:gsc:${cycle.id}` });
+    }
 
     this.logger.log(`Cycle ${cycle.id} started for "${project.name}"`);
     return { cycleId: cycle.id };

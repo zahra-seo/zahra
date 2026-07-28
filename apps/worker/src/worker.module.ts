@@ -10,6 +10,7 @@ import { CycleProcessor } from './processors/cycle.processor';
 import { CrawlProcessor } from './processors/crawl.processor';
 import { PlanProcessor } from './processors/plan.processor';
 import { ExecuteProcessor } from './processors/execute.processor';
+import { SyncProcessor } from './processors/sync.processor';
 
 function redisConnection() {
   const url = new URL(process.env.REDIS_URL ?? 'redis://localhost:6380');
@@ -29,8 +30,9 @@ function redisConnection() {
       { name: QUEUES.plan },
       { name: QUEUES.execute },
       { name: QUEUES.evaluate },
+      { name: QUEUES.sync },
     ),
   ],
-  providers: [SchedulerService, CycleProcessor, CrawlProcessor, PlanProcessor, ExecuteProcessor],
+  providers: [SchedulerService, CycleProcessor, CrawlProcessor, PlanProcessor, ExecuteProcessor, SyncProcessor],
 })
 export class WorkerModule {}
