@@ -55,7 +55,7 @@ pnpm db:generate && pnpm db:migrate
 pnpm dev                      # api on :3000, worker attached to the queues
 ```
 
-Smoke test: `curl http://localhost:3000/api/health`
+Smoke test: `curl http://localhost:3000/api/health` — interactive API docs at **`/api/docs`** (reference: [`docs/api.md`](docs/api.md))
 
 ## Roadmap
 

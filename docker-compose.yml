@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: zahra
       POSTGRES_DB: zahra
     ports:
-      - "5432:5432"
+      - "5433:5432"   # 5433 outside to avoid clashing with a local Postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -18,7 +18,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"   # 6380 outside to avoid clashing with a local Redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
