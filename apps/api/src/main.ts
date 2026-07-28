@@ -22,7 +22,9 @@ async function bootstrap() {
     .addTag('actions', 'The backlog: proposed and executed SEO actions')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: { tryItOutEnabled: true, displayRequestDuration: true, tagsSorter: 'alpha' },
+  });
 
   const port = Number(process.env.API_PORT ?? 3000);
   await app.listen(port, '0.0.0.0');
