@@ -1,6 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
-import { projects, type Db } from '@zahra-seo/db';
+import { eq, projects, type Db } from '@zahra-seo/db';
 import { DB } from '../../db.module';
 
 export interface CreateProjectInput {
