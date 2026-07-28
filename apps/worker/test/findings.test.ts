@@ -36,10 +36,13 @@ describe('deriveFindings', () => {
 
   it('flags duplicated titles on every affected page, with cross-references', () => {
     const found = deriveFindings(
-      [page({ url: 'https://site.test/a', title: 'Same' }), page({ url: 'https://site.test/b', title: 'Same' })],
+      [
+        page({ url: 'https://site.test/a', title: 'Same', metaDescription: 'Unique description for page A.' }),
+        page({ url: 'https://site.test/b', title: 'Same', metaDescription: 'Unique description for page B.' }),
+      ],
       [],
     );
-    const dups = found.filter((f) => f.kind === 'duplicate_meta');
+    const dups = found.filter((f) => f.kind === 'duplicate_meta' && f.evidence.field === 'title');
     expect(dups).toHaveLength(2);
     expect(dups[0].evidence.duplicatedOn).toEqual(['https://site.test/b']);
   });
