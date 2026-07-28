@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { z } from 'zod';
@@ -20,6 +20,17 @@ const createProjectSchema = z.object({
   name: z.string().min(1),
   baseUrl: z.string().url(),
 });
+
+const updateProjectSchema = z
+  .object({
+    name: z.string().min(1),
+    status: z.enum(['active', 'paused', 'archived']),
+    adapter: z.enum(['github_pr', 'site_api', 'both']),
+    repoOwner: z.string().min(1),
+    repoName: z.string().min(1),
+    cycleCron: z.string().min(9),
+  })
+  .partial();
 
 @ApiTags('projects')
 @Controller('projects')
@@ -68,6 +79,21 @@ export class ProjectsController {
   create(@Body() body: CreateProjectDto) {
     const input = zodParse(createProjectSchema, body);
     return this.service.create(input);
+  }
+
+  @Patch(':id')
+  @ApiOperation({
+    summary: 'Update a project',
+    description:
+      'Set repoOwner/repoName to enable the github_pr execution channel, pause the agent (status), ' +
+      'or change the cycle cron. Partial payload — only sent fields change.',
+  })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: ProjectDto })
+  @ApiNotFoundResponse({ description: 'Unknown project id' })
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() body: unknown) {
+    const patch = zodParse(updateProjectSchema, body);
+    return this.service.update(id, patch);
   }
 
   @Post(':id/cycles')

@@ -29,13 +29,13 @@ export class ActionDto {
   })
   hypothesis!: Record<string, unknown> | null;
 
-  @ApiProperty({ description: 'Tool input payload (validated against the tool inputSchema at execution)', example: { entityRef: 'https://facturaal.com/pricing' } })
+  @ApiProperty({ description: 'Tool input payload (validated against the tool inputSchema at execution)', example: { url: 'https://facturaal.com/pricing', overrides: { metaDescription: '…' } } })
   input!: Record<string, unknown>;
 
   @ApiProperty({
     enum: ['proposed', 'approved', 'rejected', 'queued', 'executing', 'executed', 'measuring', 'evaluated', 'failed', 'rolled_back'],
     example: 'proposed',
-    description: 'Phase 1 stops at "proposed": nothing mutates a site yet. Approval endpoints ship with phase 2.',
+    description: 'proposed → approved/rejected → queued → executing → executed → measuring → evaluated | failed | rolled_back',
   })
   status!: string;
 
@@ -59,4 +59,33 @@ export class ActionDto {
 
   @ApiProperty({ format: 'date-time' })
   updatedAt!: Date;
+}
+
+export class ApproveActionDto {
+  @ApiPropertyOptional({ example: 'OK pour moi, description raccourcie', description: 'Free-text note stored with the approval' })
+  comment?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Corrected/completed tool input. For fix_meta_tags this is where the human provides the actual values in phase 1 ' +
+      '(the Claude planner drafts them from phase 2). Every human edit is a learning signal for the agent (§9 of the spec).',
+    example: { url: 'https://facturaal.com/pricing', overrides: { metaDescription: 'Facturation simple pour PME sénégalaises : devis, factures et paiements mobiles en un seul outil.' } },
+  })
+  editedInput?: Record<string, unknown>;
+}
+
+export class RejectActionDto {
+  @ApiPropertyOptional({ example: 'Page en cours de refonte, inutile' })
+  comment?: string;
+}
+
+export class ActionDecisionResultDto {
+  @ApiProperty({ format: 'uuid' })
+  actionId!: string;
+
+  @ApiProperty({ enum: ['queued', 'rejected'], example: 'queued' })
+  status!: string;
+
+  @ApiPropertyOptional({ example: '57', description: 'Execution job id (approve only)' })
+  jobId?: string;
 }

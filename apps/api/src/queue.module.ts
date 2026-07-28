@@ -11,7 +11,7 @@ function redisConnection() {
 @Module({
   imports: [
     BullModule.forRoot({ connection: redisConnection() }),
-    BullModule.registerQueue({ name: QUEUES.cycle }),
+    BullModule.registerQueue({ name: QUEUES.cycle }, { name: QUEUES.execute }),
   ],
   exports: [BullModule],
 })

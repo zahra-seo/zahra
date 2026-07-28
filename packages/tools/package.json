@@ -1,5 +1,5 @@
 {
-  "name": "@zahra-seo/core",
+  "name": "@zahra-seo/tools",
   "version": "0.0.1",
   "private": true,
   "type": "commonjs",
@@ -7,15 +7,15 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@zahra-seo/connectors": "workspace:*",
+    "@zahra-seo/core": "workspace:*",
     "@zahra-seo/shared": "workspace:*",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   }
 }

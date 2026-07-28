@@ -28,4 +28,14 @@ export class ProjectsService {
       .returning();
     return row;
   }
+
+  async update(id: string, patch: Record<string, unknown>) {
+    await this.get(id);
+    const [row] = await this.db
+      .update(projects)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(eq(projects.id, id))
+      .returning();
+    return row;
+  }
 }
