@@ -41,7 +41,7 @@ export const RULES: Record<string, Rule> = {
     rationale: (ev) =>
       `Contenu maigre (${String(ev.wordCount)} mots). Les pages trop courtes peinent à se positionner ` +
       `et diluent la qualité perçue du site.`,
-    hypothesis: (ref) => ({ metric: 'gsc.position', scope: 'page', scopeRef: ref, direction: 'increase', windowDays: 28 }),
+    hypothesis: (ref) => ({ metric: 'gsc.position', scope: 'page', scopeRef: ref, direction: 'decrease', windowDays: 28 }),
     estimate: (sev) => ({ impact: severityImpact[sev], confidence: 0.5, effort: 0.6 }),
   },
   broken_link: {

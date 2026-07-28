@@ -1,15 +1,16 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
+import { Job, Queue } from 'bullmq';
 import { actionRuns, actions, and, eq, gte, inArray, projects, type Db } from '@zahra-seo/db';
 import { ToolRegistry, type ProjectContext } from '@zahra-seo/core';
 import { projectBudgetsSchema, type ActionKind } from '@zahra-seo/shared';
 import { DB } from '../db.module';
-import { QUEUES, type ExecuteJobData } from '../queues';
+import { QUEUES, type EvaluateJobData, type ExecuteJobData } from '../queues';
 
 /**
  * ACT step — runs one approved action through its tool:
- * dry-run (recorded) → execute (idempotent by action id) → verify.
+ * dry-run (recorded) → execute (idempotent by action id) → verify →
+ * schedule the evaluation at the end of the measurement window.
  * Hard budget: maxMutatingActionsPerDay, enforced here, outside any LLM.
  */
 @Processor(QUEUES.execute)
@@ -19,6 +20,7 @@ export class ExecuteProcessor extends WorkerHost {
   constructor(
     @Inject(DB) private readonly db: Db,
     private readonly registry: ToolRegistry,
+    @InjectQueue(QUEUES.evaluate) private readonly evaluateQueue: Queue<EvaluateJobData>,
   ) {
     super();
   }
@@ -107,8 +109,25 @@ export class ExecuteProcessor extends WorkerHost {
         return { status: 'failed' };
       }
 
+      // 4. schedule the measurement — the loop closes here
+      const hypothesis = action.hypothesis as { windowDays?: number } | null;
+      if (hypothesis) {
+        const windowDays = hypothesis.windowDays ?? 14;
+        await this.db
+          .update(actions)
+          .set({ status: 'measuring', updatedAt: new Date() })
+          .where(eq(actions.id, actionId));
+        await this.evaluateQueue.add(
+          'evaluate',
+          { projectId, actionId },
+          { jobId: `evaluate:${actionId}`, delay: windowDays * 86_400_000 },
+        );
+        this.logger.log(`Action ${actionId} executed — evaluation scheduled in ${windowDays} day(s)`);
+        return { status: 'measuring' };
+      }
+
       await this.db.update(actions).set({ status: 'executed', updatedAt: new Date() }).where(eq(actions.id, actionId));
-      this.logger.log(`Action ${actionId} executed: ${verdict.details ?? 'ok'}`);
+      this.logger.log(`Action ${actionId} executed (no hypothesis — nothing to measure)`);
       return { status: 'executed' };
     } catch (err) {
       if (err instanceof Error && err.message === 'DAILY_BUDGET_REACHED') throw err;

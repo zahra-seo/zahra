@@ -53,7 +53,7 @@ const PLANNER_JSON_SCHEMA = {
             type: 'object',
             required: ['metric', 'scope', 'scopeRef', 'direction', 'windowDays'],
             properties: {
-              metric: { type: 'string', description: 'e.g. gsc.ctr, gsc.position, crawl.broken_links' },
+              metric: { type: 'string', description: 'e.g. gsc.ctr, gsc.position, crawl.broken_links. direction refers to the RAW value: for gsc.position, improvement = decrease.' },
               scope: { type: 'string', enum: ['site', 'page', 'keyword', 'page_keyword'] },
               scopeRef: { type: 'string' },
               direction: { type: 'string', enum: ['increase', 'decrease'] },

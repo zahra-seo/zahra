@@ -18,5 +18,7 @@ export {
   lte,
   gt,
   gte,
+  like,
+  ilike,
   sql,
 } from 'drizzle-orm';

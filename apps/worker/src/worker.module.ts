@@ -11,6 +11,7 @@ import { CrawlProcessor } from './processors/crawl.processor';
 import { PlanProcessor } from './processors/plan.processor';
 import { ExecuteProcessor } from './processors/execute.processor';
 import { SyncProcessor } from './processors/sync.processor';
+import { EvaluateProcessor } from './processors/evaluate.processor';
 
 function redisConnection() {
   const url = new URL(process.env.REDIS_URL ?? 'redis://localhost:6380');
@@ -33,6 +34,14 @@ function redisConnection() {
       { name: QUEUES.sync },
     ),
   ],
-  providers: [SchedulerService, CycleProcessor, CrawlProcessor, PlanProcessor, ExecuteProcessor, SyncProcessor],
+  providers: [
+    SchedulerService,
+    CycleProcessor,
+    CrawlProcessor,
+    PlanProcessor,
+    ExecuteProcessor,
+    SyncProcessor,
+    EvaluateProcessor,
+  ],
 })
 export class WorkerModule {}
